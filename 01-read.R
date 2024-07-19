@@ -22,7 +22,7 @@ csvtab[, month := data.table::month(date)]
 
 #' Read a single CSV (1 day)
 read_single_day <- function(csv, keep_smart_raw = FALSE, keep_smart_normalized = FALSE) {
-  # csv <- "data-raw/data_2013/2013/2013-04-10.csv"
+  # csv <- "data-raw/csv/2013-04-10.csv"
   xdat <- fread(csv, showProgress = FALSE)
 
   # Edge case: 2018-02-25.csv is a CR-terminated file where `date` is a different format
