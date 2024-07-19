@@ -27,7 +27,7 @@ read_single_day <- function(csv, keep_smart_raw = FALSE, keep_smart_normalized =
 
   # Edge case: 2018-02-25.csv is a CR-terminated file where `date` is a different format
   if (inherits(xdat[["date"]], "character")) {
-    # Remaiining dates are parsed as IDate and IDateTime returns a two-element vector with idate and itime
+    # Remaining dates are parsed as IDate and IDateTime returns a two-element vector with idate and itime
     xdat[, date := data.table::IDateTime(as.Date(date, format = "%m/%d/%y"))[["idate"]]]
   }
 
@@ -58,10 +58,10 @@ read_single_day <- function(csv, keep_smart_raw = FALSE, keep_smart_normalized =
 #' @param csvs `character()` vector of CSV file paths.
 #' @return A `data.table` with the same columns as produced by `read_single_day()` but retaining
 #' only first and last observation per `serial_number`
-reduce_csvs <- function(csvs) {
+reduce_csvs <- function(csvs, keep_smart_raw = FALSE, keep_smart_normalized = FALSE) {
   # csvs <- csvtab[year == 2013, csv]
   tablist <- future.apply::future_lapply(csvs, \(csv) {
-    read_single_day(csv)
+    read_single_day(csv, keep_smart_raw = keep_smart_raw, keep_smart_normalized = keep_smart_normalized)
   })
 
   xtab <- rbindlist(tablist)
@@ -92,7 +92,7 @@ for (i in seq_len(nrow(yearmonth))) {
   current_csvs <- csvtab[year == current_year & month == current_month, csv]
   
   tictoc::tic()
-  xtab <- reduce_csvs(current_csvs)
+  xtab <- reduce_csvs(current_csvs, keep_smart_raw = FALSE, keep_smart_normalized = TRUE)
   tictoc::toc()
 
   cli::cli_alert_info("Writing to {dest_file}")
