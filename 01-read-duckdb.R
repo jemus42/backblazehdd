@@ -5,6 +5,9 @@ duckplyr::methods_overwrite()
 Sys.setenv(DUCKPLYR_FALLBACK_COLLECT = 1)
 Sys.setenv(DUCKPLYR_FALLBACK_AUTOUPLOAD = 1)
 
+data_dir <- "data/parquet"
+usethis::use_directory(data_dir)
+
 # bench::mark(
 #   duckplyr::df_from_csv("data-raw/csv/2013-04-10.csv"),
 #   data.table::fread("data-raw/csv/2013-04-10.csv"),
@@ -38,7 +41,7 @@ csvtab <- collect_csvs()
 #' Read a single CSV (1 day)
 read_single_day <- function(csv, keep_smart_raw = FALSE, keep_smart_normalized = FALSE) {
   # csv <- "data-raw/csv/2013-04-10.csv"
-  # Would need to pre-specifcy type for dozens of SMART values which may or may not exist depending on date of data
+  # Would need to pre-specify type for dozens of SMART values which may or may not exist depending on date of data
   # ...so we manually convert afetrwards, which is slower I guess.
   xdat <- duckplyr::duckplyr_df_from_csv(csv)
 
@@ -59,27 +62,29 @@ read_single_day <- function(csv, keep_smart_raw = FALSE, keep_smart_normalized =
   if (!keep_smart_raw) {
     xdat <- xdat |>
       select(!matches("^smart.*raw$"))
-  } else {
-    xdat <- xdat |>
-      mutate(across(matches("^smart.*raw$"), as.integer))
   }
 
   if (!keep_smart_normalized) {
     xdat <- xdat |>
       select(!matches("^smart.*normalized$"))
-  } else {
+  }
+  
+  if (keep_smart_raw | keep_smart_normalized) {
     xdat <- xdat |>
-      mutate(across(matches("^smart.*normalized$"), as.integer))
+      mutate(across(matches("^smart"), as.integer))
   }
 
   # Store capacity as Gibibytes for compactness
   xdat |>
-    mutate(capacity_gib = capacity_bytes/1024^3, .after = "model") |>
+    mutate(
+      failure = as.integer(failure),
+      capacity_gib = capacity_bytes/1024^3, 
+      .after = "model"
+    ) |>
     select(-capacity_bytes)
 }
 
 future::plan("multisession", workers = getOption("Ncpus"))
-
 
 #  csvs <- sample(csvtab$csv, 10)
 
@@ -112,10 +117,9 @@ for (i in seq_len(nrow(yearmonth))) {
   current_month <- yearmonth[i, month]
   
   dest_file <- sprintf("data_%i-%02i.parquet", current_year, current_month)
-  dest_file <- fs::path(here::here("data"), dest_file)
+  dest_file <- fs::path(data_dir, dest_file)
 
   if (fs::file_exists(dest_file)) next
-
   cli::cli_alert_info("Reading data from {.value {current_year}} month {.value {current_month}}")
 
   current_csvs <- csvtab[year == current_year & month == current_month, csv]
@@ -126,4 +130,5 @@ for (i in seq_len(nrow(yearmonth))) {
 
   cli::cli_alert_info("Writing to {dest_file}")
   df_to_parquet(xtab, path = dest_file)
+  rm(xtab)
 }
