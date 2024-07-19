@@ -37,12 +37,13 @@ for (zip in zip_urls) {
 cli::cli_progress_done()
 
 # Extract zips
-zips <- fs::dir_ls("data-raw", glob = "*zip")
+zips <- fs::dir_ls("data-raw/zip", glob = "*zip")
 
 # This will create a lot of CSV files, one per day, for over a decade.
 # Don't flood your filesystem please.
 # Note that years 2013 to 2015 will extract to a folder of the year which contains the CSV files,
-# whereas subsequent archives just directly extract all CSV files in the extraction directory.
+# whereas subsequent archives are per quarter and directly extract all CSV files in the extraction directory.
+# At least until 2022, then it's one subfolder per archive again.
 purrr::walk(zips, \(x) {
   unzip(x, exdir = "data-raw/csv")
 })
