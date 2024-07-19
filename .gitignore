@@ -5,3 +5,5 @@
 
 docs_Q4_2019
 data-raw
+data/*rds
+data/*parquet
