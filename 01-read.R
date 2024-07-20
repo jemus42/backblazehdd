@@ -2,7 +2,9 @@
 # https://f001.backblazeb2.com/file/Backblaze-Hard-Drive-Data/data_Q1_2020.zip
 
 library(data.table)
-usethis::use_directory("data")
+
+data_dir <- "data/rds"
+usethis::use_directory(data_dir)
 
 csvs <- fs::dir_ls("data-raw", glob = "*.csv", recurse = TRUE)
 
@@ -83,7 +85,7 @@ for (i in seq_len(nrow(yearmonth))) {
   current_month <- yearmonth[i, month]
   
   dest_file <- sprintf("data_%i-%02i.rds", current_year, current_month)
-  dest_file <- fs::path(here::here("data"), dest_file)
+  dest_file <- fs::path(data_dir, dest_file)
 
   if (fs::file_exists(dest_file)) next
 

@@ -3,7 +3,7 @@ library(duckplyr)
 duckplyr::methods_overwrite()
 
 Sys.setenv(DUCKPLYR_FALLBACK_COLLECT = 1)
-Sys.setenv(DUCKPLYR_FALLBACK_AUTOUPLOAD = 1)
+Sys.setenv(DUCKPLYR_FALLBACK_AUTOUPLOAD = 0)
 
 data_dir <- "data/parquet"
 usethis::use_directory(data_dir)

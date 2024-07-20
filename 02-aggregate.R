@@ -1,6 +1,6 @@
 library(data.table)
 
-rds_files <- fs::dir_ls("data", glob = "data*rds")
+rds_files <- fs::dir_ls("data/rds", glob = "data*rds")
 
 # xtab <- readRDS(rds_files[[1]])
 
@@ -18,6 +18,11 @@ xtab <- xtab[ , .SD[unique(c(1, .N))], by = .(serial_number, failure)]
 # xtab <- xtab[order(serial_number, date)]
 
 xtab[serial_number == "WD-WCAWZ0495587"]
+
+missings <- xtab[, lapply(.SD, \(x) sum(is.na(x))/length(x))] |> 
+  melt(variable.name = "variable", value.name = "missing_prop", measure.vars = names(xtab))
+
+missings[order(missing_prop)]
 
 
 xsurv <- xtab[, .(
